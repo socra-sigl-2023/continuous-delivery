@@ -123,7 +123,11 @@ docker pull <registry_name>/<github_username>/<repository_name>/<image_name>:<im
 
 - When running your container, you need to specify Traefik labels:
 ```sh
-"traefik.http.routers.my-container.rule=Host(`groupXX.socra-sigl.fr`)"
+"traefik.http.routers.socrate.rule=Host(\`groupXX.socra-sigl.fr\`)"  # determines which domain name Traefik will reverse proxy to
+"traefik.http.routers.socrate.tls=true" # Activate TSL to allow HTTPS protocol over HTTP (we setup automatic SSL for you)
+"traefik.http.routers.socrate.tls.certresolver=myresolver"  # Sets how to resolve SSL certificates
+"traefik.enable=true" # Allow traefik to inspect the container's label
+"traefik.docker.network=web" # Explicitly tells traefik to inspect docker network named web (from your VM; you can see it via `docker network ls`)
 ```
 - You also need to make sure you run your container in the same `docker network` as Traefik: `web`
 - And add a `name` to recognize your running container: `--name socrate-frontend`
@@ -131,9 +135,20 @@ docker pull <registry_name>/<github_username>/<repository_name>/<image_name>:<im
 So your command to run the container will look like: 
 ```sh
   # from your VM; and adapt groupXX by your group number
-  docker run -d --name socrate-frontend --network web --label "traefik.http.routers.my-container.rule=Host(`groupXX.socra-sigl.fr`)" <docker_image_name>
+  docker run -d \ 
+    --network web \
+    --name socrate-frontend \
+    --network web \
+    --label "traefik.http.routers.socrate.rule=Host(\`groupXX.socra-sigl.fr\`)" \
+    --label "traefik.http.routers.socrate.tls=true" \
+    --label "traefik.http.routers.socrate.tls.certresolver=myresolver" \
+    --label "traefik.enable=true" \
+    --label "traefik.docker.network=web" \
+    <docker_image_name>
 ```
 > Note: <docker_image_name> being your <registry_name>/<github_username>/<repository_name>/<image_name>:<image_tag>
+> Note 2: escaping \`groupXX.socra-sigl.fr\` is necessary since you will run docker command on a shell; 
+>       it would interpret groupXX.socra-sigl.fr as a shell command otherwise
 
 You should be able to see your page live once again at the address: http://groupXX.socra-sigl.fr
 
@@ -336,7 +351,7 @@ In order to have a nice functionnal CD that works on every run, you should add t
     # If socrate-frontend is your container name
     docker stop socrate-frontend && docker rm socrate-frontend || echo "Nothing to stop"
     # your docker run command from previous step. Use ${{ github.sha }} as an image tag
-    docker run ...
+    docker run -d --name socrate-frontend --network web --label ...
 ```
 
 Once this is done, try out to push different versions of your `index.html` on main and this should continously deliver the new version on `http://groupXX.socra-sigl.fr` !
