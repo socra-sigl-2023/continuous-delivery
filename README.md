@@ -190,8 +190,10 @@ What just happened:
 
 #### Step 4.2: Configuring your workflow
 
-Before you start, make sure you understood the previous step. Read again this
-`main.yml` file with comments to understand the structure.
+Before you start, make sure you:
+- you `git pull origin main` on your local host after commiting your workflow
+- understood the previous step
+- Read again this `deploy.yml` file with comments to understand the structure.
 
 To roughly sum up, a workflow is composed of:
 - a name (to identify your workflow in the `Actions` tab on Github), specified
@@ -279,7 +281,7 @@ For example, if you would (and you shouldn't!) print your secret variable, you w
     echo "My secret docker user is: ${{ github.DOCKER_USER }}"
 ```
 
-So you will use your docker secrets variables when using `docker login` inside your `main.yml` workflow.
+So you will use your docker secrets variables when using `docker login` inside your `deploy.yml` workflow.
 
 For the `<image_tag>`, you will use the `${{ github.sha }}` default variable. This will make sure that our image are unique from each git commit. It makes it easy to trace which version of the code is in which image.
 Try out again to commit/push your changes, and your workflow to be green.
